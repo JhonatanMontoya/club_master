@@ -1,27 +1,21 @@
 {
   "name": "club-master-backend",
   "version": "1.0.0",
-  "description": "Maneja la logica del proyecto",
-  "keywords": [
-    "club",
-    "bares",
-    "disoctecas",
-    "administracion",
-    "clientes"
-  ],
-  "homepage": "https://github.com/JhonatanMontoya/club_master#readme",
-  "bugs": {
-    "url": "https://github.com/JhonatanMontoya/club_master/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/JhonatanMontoya/club_master.git"
-  },
-  "license": "Apache-2.0",
-  "author": "Jhonatan Montoya (MontoyaZ.com)",
-  "type": "commonjs",
-  "main": "index.js",
+  "description": "Backend API para CLUB MASTER",
+  "main": "src/index.js",
+  "type": "module",
   "scripts": {
-    "test": "dev"
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js",
+    "db:migrate": "node src/scripts/migrate.js",
+    "db:seed": "node src/scripts/seed.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.14.1"
   }
 }
