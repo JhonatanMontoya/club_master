@@ -37,36 +37,51 @@ INSERT INTO categorias (nombre, slug, icono, orden) VALUES
 ('Cervezas', 'cervezas', 'beer', 2),
 ('Cócteles', 'cocteles', 'cocktail', 3),
 ('Combos', 'combos', 'combo', 4),
-('Snacks', 'snacks', 'snack', 5);
+('Snacks', 'snacks', 'snack', 5),
+('Refrescos', 'refrescos', 'drink', 6);
 
 INSERT INTO productos (categoria_id, nombre, descripcion, precio, imagen_url, destacado) VALUES
-(1, 'Whisky Premium 750ml', 'Whisky añejo importado', 185000, 'https://images.unsplash.com/photo-1527281400683-1aae7261f267?w=400', 1),
-(1, 'Ron Añejo', 'Ron premium caribeño', 95000, 'https://images.unsplash.com/photo-1569529465841-df964c2270a8?w=400', 1),
-(1, 'Vodka Absolut', 'Vodka premium sueco', 120000, 'https://images.unsplash.com/photo-1618885472179-5e4740f08856?w=400', 0),
-(2, 'Cerveza Artesanal IPA', 'Cerveza artesanal local', 18000, 'https://images.unsplash.com/photo-1608270586620-248524c67de9?w=400', 1),
-(2, 'Cerveza Importada', 'Lager importada 330ml', 15000, 'https://images.unsplash.com/photo-1535958636474-b021ee887b13?w=400', 0),
-(2, 'Six Pack Cerveza', 'Pack de 6 unidades', 75000, 'https://images.unsplash.com/photo-1571613314887-6f3d2f7f5f0b?w=400', 0),
-(3, 'Mojito Clásico', 'Ron, menta, lima y soda', 28000, 'https://images.unsplash.com/photo-1551538827-9c037cb64129?w=400', 1),
-(3, 'Margarita', 'Tequila, triple sec y lima', 32000, 'https://images.unsplash.com/photo-1556855810-ac404aa91e71?w=400', 1),
-(3, 'Old Fashioned', 'Whisky, bitter y azúcar', 35000, 'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=400', 0),
-(4, 'Combo Amigos', 'Botella + 4 cervezas + snacks', 250000, 'https://images.unsplash.com/photo-1514362545857-3bc16a4b7d9e?w=400', 1),
-(4, 'Combo Pareja', '2 cócteles + snack', 65000, 'https://images.unsplash.com/photo-1476127397705-61c16964a582?w=400', 0),
-(5, 'Nachos con Queso', 'Nachos crujientes con dip', 22000, 'https://images.unsplash.com/photo-1513456852971-3fab5fa2f623?w=400', 0),
-(5, 'Alitas BBQ', '12 alitas con salsa BBQ', 35000, 'https://images.unsplash.com/photo-1608039829572-78524f79c4c7?w=400', 1),
-(5, 'Tabla de Quesos', 'Selección premium de quesos', 45000, 'https://images.unsplash.com/photo-1452195100506-9c860d0c4a27?w=400', 0);
+(1, 'Whisky Buchanan''s 12 Años', 'Whisky escocés blend premium 750ml', 195000, '/products/1.jpg', 1),
+(1, 'Ron Medellín 3 Años', 'Ron colombiano añejo 750ml', 72000, '/products/2.jpg', 1),
+(1, 'Aguardiente Antioqueño', 'Aguardiente azul tradicional 750ml', 65000, '/products/3.jpg', 0),
+(1, 'Aguardiente Nectar', 'Aguardiente con miel de panela 750ml', 62000, '/products/4.jpg', 0),
+(1, 'Ron Bacardí Carta Blanca', 'Ron blanco cubano 750ml', 88000, '/products/5.jpg', 0),
+(1, 'Ron Zacapa 23', 'Ron guatemalteco añejo 750ml', 220000, '/products/6.jpg', 1),
+(1, 'Vodka Absolut', 'Vodka sueco premium 750ml', 120000, '/products/7.jpg', 0),
+(1, 'Tequila José Cuervo', 'Tequila reposado mexicano 750ml', 98000, '/products/8.jpg', 0),
+(1, 'Gin Tanqueray', 'Gin inglés London Dry 750ml', 145000, '/products/9.jpg', 0),
+(2, 'Cerveza Artesanal IPA', 'IPA local 330ml', 18000, '/products/10.jpg', 1),
+(2, 'Poker 330ml', 'Lager colombiana', 8000, '/products/11.jpg', 0),
+(2, 'Águila 330ml', 'Cerveza lager clásica', 7500, '/products/12.jpg', 0),
+(2, 'Club Colombia Dorada', 'Cerveza premium 330ml', 9000, '/products/13.jpg', 0),
+(2, 'Corona Extra 330ml', 'Cerveza mexicana', 12000, '/products/14.jpg', 1),
+(2, 'Heineken 330ml', 'Lager holandesa', 11000, '/products/15.jpg', 0),
+(2, 'Six Pack Poker', 'Pack 6 unidades', 42000, '/products/16.jpg', 0),
+(3, 'Mojito Clásico', 'Ron, menta, lima y soda', 28000, '/products/17.jpg', 1),
+(3, 'Margarita', 'Tequila, triple sec y lima', 32000, '/products/18.jpg', 1),
+(3, 'Piña Colada', 'Ron, coco y piña', 30000, '/products/19.jpg', 0),
+(3, 'Cuba Libre', 'Ron y Coca-Cola', 26000, '/products/20.jpg', 0),
+(4, 'Combo Amigos', 'Botella + 4 cervezas + nachos', 250000, '/products/21.jpg', 1),
+(4, 'Combo Pareja', '2 cócteles + tabla quesos', 65000, '/products/22.jpg', 0),
+(4, 'Combo VIP', 'Botella premium + 6 cervezas + snacks', 380000, '/products/23.jpg', 1),
+(5, 'Alitas BBQ', '12 alitas salsa BBQ', 35000, '/products/24.jpg', 1),
+(5, 'Nachos con Queso', 'Nachos con dip cheddar', 22000, '/products/25.jpg', 0),
+(5, 'Tabla de Quesos', 'Selección premium', 45000, '/products/26.jpg', 0),
+(6, 'Agua Brisa 600ml', 'Agua sin gas', 5000, '/products/27.jpg', 0),
+(6, 'Coca-Cola 400ml', 'Gaseosa cola', 7000, '/products/28.jpg', 1),
+(6, 'Gatorade Azul 500ml', 'Bebida deportiva', 9000, '/products/29.jpg', 0),
+(6, 'Limonada Natural', 'Limonada con hierbabuena', 10000, '/products/30.jpg', 0);
 
 INSERT INTO promociones (titulo, descripcion, descuento_porcentaje, imagen_url, fecha_inicio, fecha_fin, activa) VALUES
-('Happy Hour VIP', '20% en cócteles de 6pm a 8pm', 20, 'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=800', CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY), 1),
-('Combo Noche', 'Botella + mixer gratis los viernes', 15, 'https://images.unsplash.com/photo-1514362545857-3bc16a4b7d9e?w=800', CURDATE(), DATE_ADD(CURDATE(), INTERVAL 60 DAY), 1);
+('2x1 en Cócteles', 'Pide 2 cócteles y paga solo 1. Válido todos los días hasta las 10:00 p.m.', 50, '/products/4.jpg', CURDATE(), DATE_ADD(CURDATE(), INTERVAL 180 DAY), 1),
+('Combo Fin de Semana', '15% de descuento en combos los viernes y sábados', 15, '/products/6.jpg', CURDATE(), DATE_ADD(CURDATE(), INTERVAL 60 DAY), 1);
 
 INSERT INTO detalle_promocion (promocion_id, producto_id, cantidad) VALUES
-(1, 7, 1), (1, 8, 1), (1, 9, 1),
-(2, 1, 1), (2, 10, 1);
+(1, 17, 1), (1, 18, 1), (1, 19, 1), (1, 20, 1),
+(2, 21, 1), (2, 22, 1), (2, 23, 1);
 
-INSERT INTO inventario (producto_id, stock_actual, stock_minimo) VALUES
-(1, 25, 5), (2, 40, 10), (3, 30, 5), (4, 100, 20), (5, 80, 15),
-(6, 50, 10), (7, 200, 30), (8, 200, 30), (9, 150, 25), (10, 15, 3),
-(11, 20, 5), (12, 60, 10), (13, 45, 8), (14, 30, 5);
+INSERT INTO inventario (producto_id, stock_actual, stock_minimo)
+SELECT id, 30 + (id * 3) % 70, IF(categoria_id = 1, 8, 5) FROM productos;
 
 INSERT INTO proveedores (nombre, contacto, telefono, email) VALUES
 ('Distribuidora Premium S.A.', 'Carlos Méndez', '3001234567', 'carlos@premium.com'),

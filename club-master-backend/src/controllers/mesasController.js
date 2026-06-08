@@ -49,6 +49,19 @@ export async function createMesa(req, res) {
   }
 }
 
+export async function updateMesa(req, res) {
+  try {
+    const { numero, codigo_qr, capacidad, zona, estado } = req.body;
+    await query(
+      'UPDATE mesas SET numero=?, codigo_qr=?, capacidad=?, zona=?, estado=? WHERE id=?',
+      [numero, codigo_qr, capacidad, zona, estado, req.params.id]
+    );
+    res.json({ message: 'Mesa actualizada' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+}
+
 export async function deleteMesa(req, res) {
   try {
     await query('UPDATE mesas SET activa = 0 WHERE id = ?', [req.params.id]);

@@ -1,7 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
+import { SiteConfigProvider } from './context/SiteConfigContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import MesaSessionGuard from './components/auth/MesaSessionGuard';
 import ClientLayout from './components/layout/ClientLayout';
 import AdminLayout from './components/layout/AdminLayout';
 import StaffLayout from './components/layout/StaffLayout';
@@ -11,17 +13,32 @@ import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import Guest from './pages/auth/Guest';
 import MesaSelect from './pages/client/MesaSelect';
+import PedidoEspera from './pages/client/PedidoEspera';
 import ClientHome from './pages/client/Home';
 import Products from './pages/client/Products';
 import Cart from './pages/client/Cart';
 import Payment from './pages/client/Payment';
 import Tracking from './pages/client/Tracking';
 import StaffDashboard from './pages/staff/Dashboard';
+import StaffNuevoPedido from './pages/staff/NuevoPedido';
+import StaffMesas from './pages/staff/MesasStaff';
 import AdminDashboard from './pages/admin/Dashboard';
-import AdminModule from './pages/admin/AdminModule';
+import AdminProductos from './pages/admin/Productos';
+import AdminCategorias from './pages/admin/Categorias';
+import AdminInventario from './pages/admin/Inventario';
+import AdminPromociones from './pages/admin/Promociones';
+import AdminReservas from './pages/admin/Reservas';
+import AdminUsuarios from './pages/admin/Usuarios';
+import AdminStaff from './pages/admin/Staff';
+import AdminPedidos from './pages/admin/Pedidos';
+import AdminPagos from './pages/admin/Pagos';
+import AdminReportes from './pages/admin/Reportes';
+import AdminConfiguracion from './pages/admin/Configuracion';
+import AdminMesas from './pages/admin/Mesas';
 
 function App() {
   return (
+    <SiteConfigProvider>
     <AuthProvider>
       <CartProvider>
         <BrowserRouter>
@@ -39,7 +56,9 @@ function App() {
 
             <Route path="/cliente" element={
               <ProtectedRoute roles={['cliente']}>
-                <ClientLayout />
+                <MesaSessionGuard>
+                  <ClientLayout />
+                </MesaSessionGuard>
               </ProtectedRoute>
             }>
               <Route index element={<ClientHome />} />
@@ -47,6 +66,7 @@ function App() {
               <Route path="carrito" element={<Cart />} />
               <Route path="pago" element={<Payment />} />
               <Route path="seguimiento" element={<Tracking />} />
+              <Route path="espera-pedido" element={<PedidoEspera />} />
             </Route>
 
             <Route path="/staff" element={
@@ -55,6 +75,8 @@ function App() {
               </ProtectedRoute>
             }>
               <Route index element={<StaffDashboard />} />
+              <Route path="nuevo-pedido" element={<StaffNuevoPedido />} />
+              <Route path="mesas" element={<StaffMesas />} />
             </Route>
 
             <Route path="/admin" element={
@@ -63,18 +85,18 @@ function App() {
               </ProtectedRoute>
             }>
               <Route index element={<AdminDashboard />} />
-              <Route path="productos" element={<AdminModule title="Productos" description="Gestión del menú y precios" />} />
-              <Route path="categorias" element={<AdminModule title="Categorías" description="Organización del menú" />} />
-              <Route path="inventario" element={<AdminModule title="Inventario" description="Control de stock" />} />
-              <Route path="promociones" element={<AdminModule title="Promociones" description="Ofertas y descuentos" />} />
-              <Route path="reservas" element={<AdminModule title="Reservas" description="Gestión de reservaciones" />} />
-              <Route path="mesas" element={<AdminModule title="Mesas" description="Configuración de mesas y QR" />} />
-              <Route path="usuarios" element={<AdminModule title="Usuarios" description="Clientes registrados" />} />
-              <Route path="staff" element={<AdminModule title="Staff" description="Personal operativo" />} />
-              <Route path="pedidos" element={<AdminModule title="Pedidos" description="Historial de pedidos" />} />
-              <Route path="pagos" element={<AdminModule title="Pagos" description="Transacciones y métodos de pago" />} />
-              <Route path="reportes" element={<AdminModule title="Reportes" description="Análisis y métricas" />} />
-              <Route path="configuracion" element={<AdminModule title="Configuración" description="Ajustes del negocio" />} />
+              <Route path="productos" element={<AdminProductos />} />
+              <Route path="categorias" element={<AdminCategorias />} />
+              <Route path="inventario" element={<AdminInventario />} />
+              <Route path="promociones" element={<AdminPromociones />} />
+              <Route path="reservas" element={<AdminReservas />} />
+              <Route path="mesas" element={<AdminMesas />} />
+              <Route path="usuarios" element={<AdminUsuarios />} />
+              <Route path="staff" element={<AdminStaff />} />
+              <Route path="pedidos" element={<AdminPedidos />} />
+              <Route path="pagos" element={<AdminPagos />} />
+              <Route path="reportes" element={<AdminReportes />} />
+              <Route path="configuracion" element={<AdminConfiguracion />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />
@@ -82,6 +104,7 @@ function App() {
         </BrowserRouter>
       </CartProvider>
     </AuthProvider>
+    </SiteConfigProvider>
   );
 }
 

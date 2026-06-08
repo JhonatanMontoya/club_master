@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiHash, FiGrid } from 'react-icons/fi';
@@ -16,8 +16,15 @@ export default function MesaSelect() {
   const [mesas, setMesas] = useState([]);
   const [selected, setSelected] = useState(null);
   const [error, setError] = useState('');
-  const { selectMesa } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const { requestMesaSession, mesaSesion } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (mesaSesion && ['pendiente', 'activa'].includes(mesaSesion.estado)) {
+      navigate('/cliente', { replace: true });
+    }
+  }, [mesaSesion, navigate]);
 
   const loadMesas = async () => {
     const data = await apiGet('/mesas');
@@ -35,16 +42,33 @@ export default function MesaSelect() {
     }
   };
 
-  const confirmar = () => {
+  const confirmar = async () => {
     if (!selected) return;
-    selectMesa(selected);
-    navigate('/cliente');
+    setError('');
+    setLoading(true);
+    try {
+      await requestMesaSession(selected);
+      navigate('/cliente');
+    } catch (e) {
+      setError(e.response?.data?.message || 'No se pudo registrar la mesa');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-black px-6 py-12">
       <Logo className="mb-8" />
-      <h2 className="text-2xl font-bold text-white mb-6">Selecciona tu mesa</h2>
+      <h2 className="text-2xl font-bold text-white mb-2">Selecciona tu mesa</h2>
+      <p className="text-gray-text text-sm mb-6">
+        Podrás ver el menú de inmediato. Al confirmar tu pedido, el mesero lo aprobará.
+      </p>
+      {mesaSesion && ['pendiente', 'activa'].includes(mesaSesion.estado) && (
+        <Card className="mb-6 border border-gold/30">
+          <p className="text-gold text-sm">Mesa #{mesaSesion.mesa_numero} registrada.</p>
+          <Button className="w-full mt-3" onClick={() => navigate('/cliente')}>Ir al menú</Button>
+        </Card>
+      )}
 
       <div className="flex gap-2 mb-6">
         {[
@@ -91,11 +115,15 @@ export default function MesaSelect() {
               onClick={() => setSelected(m)}
               className={`p-4 rounded-xl border text-center transition-all ${
                 selected?.id === m.id ? 'border-gold gold-gradient text-black' :
+                m.sesion?.estado === 'pendiente' ? 'border-amber-500/40 text-amber-300' :
+                m.sesion?.estado === 'activa' ? 'border-red-500/40 text-red-400' :
                 m.estado === 'ocupada' ? 'border-red-500/30 text-red-400' : 'border-gold/20 text-white hover:border-gold'
               }`}
             >
               <span className="text-2xl font-bold">{m.numero}</span>
-              <p className="text-xs mt-1 opacity-70">{m.estado}</p>
+              <p className="text-xs mt-1 opacity-70">
+                {m.sesion?.estado === 'pendiente' ? 'pendiente' : m.sesion?.estado === 'activa' ? 'en uso' : m.estado}
+              </p>
             </button>
           ))}
         </div>
@@ -108,7 +136,9 @@ export default function MesaSelect() {
             <p className="text-4xl font-bold text-gold mt-2">#{selected.numero}</p>
             <p className="text-gray-text text-sm mt-1">Zona: {selected.zona}</p>
           </Card>
-          <Button className="w-full mt-4" onClick={confirmar}>Continuar</Button>
+          <Button className="w-full mt-4" onClick={confirmar} disabled={loading}>
+            {loading ? 'Registrando…' : 'Entrar al menú'}
+          </Button>
         </motion.div>
       )}
     </div>

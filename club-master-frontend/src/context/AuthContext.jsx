@@ -1,21 +1,75 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { apiPost } from '../services/api';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { apiGet, apiPost, apiPatch } from '../services/api';
 
 const AuthContext = createContext(null);
+
+const SESION_KEY = 'club_master_mesa_sesion';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [mesa, setMesa] = useState(null);
+  const [mesaSesion, setMesaSesion] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const persistSesion = (sesion) => {
+    if (sesion) {
+      localStorage.setItem(SESION_KEY, JSON.stringify(sesion));
+      setMesaSesion(sesion);
+    } else {
+      localStorage.removeItem(SESION_KEY);
+      setMesaSesion(null);
+    }
+  };
+
+  const selectMesa = (mesaData) => {
+    if (mesaData) {
+      localStorage.setItem('club_master_mesa', JSON.stringify(mesaData));
+      setMesa(mesaData);
+    } else {
+      localStorage.removeItem('club_master_mesa');
+      setMesa(null);
+    }
+  };
+
+  const clearMesaSession = useCallback(() => {
+    persistSesion(null);
+    selectMesa(null);
+  }, []);
+
+  const refreshMesaSesion = useCallback(async () => {
+    if (!user || user.rol !== 'cliente') return null;
+    try {
+      const sesion = await apiGet('/mesas/sesiones/mi');
+      if (!sesion) {
+        clearMesaSession();
+        return null;
+      }
+      persistSesion(sesion);
+      if (sesion.mesa && ['pendiente', 'activa'].includes(sesion.estado)) {
+        selectMesa(sesion.mesa);
+      }
+      return sesion;
+    } catch {
+      return null;
+    }
+  }, [user, clearMesaSession]);
 
   useEffect(() => {
     const token = localStorage.getItem('club_master_token');
     const savedUser = localStorage.getItem('club_master_user');
     const savedMesa = localStorage.getItem('club_master_mesa');
+    const savedSesion = localStorage.getItem(SESION_KEY);
     if (token && savedUser) setUser(JSON.parse(savedUser));
+    if (savedSesion) setMesaSesion(JSON.parse(savedSesion));
     if (savedMesa) setMesa(JSON.parse(savedMesa));
     setLoading(false);
   }, []);
+
+  useEffect(() => {
+    if (!loading && user?.rol === 'cliente') {
+      refreshMesaSesion();
+    }
+  }, [loading, user, refreshMesaSesion]);
 
   const persist = (token, userData) => {
     localStorage.setItem('club_master_token', token);
@@ -41,21 +95,64 @@ export function AuthProvider({ children }) {
     return data.user;
   };
 
-  const selectMesa = (mesaData) => {
-    localStorage.setItem('club_master_mesa', JSON.stringify(mesaData));
-    setMesa(mesaData);
+  const requestMesaSession = async (mesaData) => {
+    const sesion = await apiPost('/mesas/sesiones', { mesa_id: mesaData.id });
+    persistSesion(sesion);
+    selectMesa(sesion.mesa || mesaData);
+    return sesion;
   };
 
-  const logout = () => {
+  const activateMesaFromSesion = (sesion) => {
+    if (sesion?.mesa) selectMesa(sesion.mesa);
+    persistSesion(sesion);
+  };
+
+  const cancelMesaSesion = async () => {
+    if (mesaSesion?.id) {
+      try {
+        await apiPatch(`/mesas/sesiones/${mesaSesion.id}/cerrar`);
+      } catch {
+        /* sesión ya cerrada */
+      }
+    }
+    clearMesaSession();
+  };
+
+  const logout = async () => {
+    if (mesaSesion?.id && ['pendiente', 'activa'].includes(mesaSesion.estado)) {
+      try {
+        await apiPatch(`/mesas/sesiones/${mesaSesion.id}/cerrar`);
+      } catch {
+        /* ignore */
+      }
+    }
     localStorage.removeItem('club_master_token');
     localStorage.removeItem('club_master_user');
     localStorage.removeItem('club_master_mesa');
+    localStorage.removeItem(SESION_KEY);
     setUser(null);
     setMesa(null);
+    setMesaSesion(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, mesa, loading, login, register, guestLogin, selectMesa, logout, setUser }}>
+    <AuthContext.Provider value={{
+      user,
+      mesa,
+      mesaSesion,
+      loading,
+      login,
+      register,
+      guestLogin,
+      selectMesa,
+      requestMesaSession,
+      activateMesaFromSesion,
+      refreshMesaSesion,
+      clearMesaSession,
+      cancelMesaSesion,
+      logout,
+      setUser,
+    }}>
       {children}
     </AuthContext.Provider>
   );

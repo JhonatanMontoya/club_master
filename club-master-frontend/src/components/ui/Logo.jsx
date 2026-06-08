@@ -1,4 +1,6 @@
 import { motion } from 'framer-motion';
+import { useSiteConfig } from '../../context/SiteConfigContext';
+import { DEFAULT_SITE_CONFIG } from '../../utils/siteConfig';
 
 const sizes = {
   sm: 'h-12',
@@ -8,6 +10,10 @@ const sizes = {
 };
 
 export default function Logo({ size = 'lg', className = '' }) {
+  const { logoUrl, config } = useSiteConfig() || {};
+  const src = logoUrl || DEFAULT_SITE_CONFIG.logo_url;
+  const alt = `${config?.negocio || 'CLUB MASTER'} — ${config?.slogan || ''}`;
+
   return (
     <motion.div
       className={`flex justify-center ${className}`}
@@ -16,8 +22,8 @@ export default function Logo({ size = 'lg', className = '' }) {
       transition={{ duration: 0.4 }}
     >
       <img
-        src="/logo-club-master.png"
-        alt="CLUB MASTER — Gestiona, vende y brilla"
+        src={src}
+        alt={alt}
         className={`${sizes[size]} w-auto max-w-full object-contain`}
         draggable={false}
       />

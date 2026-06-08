@@ -1,14 +1,24 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FiPlus } from 'react-icons/fi';
 import Card from '../ui/Card';
 import { formatCOP } from '../../utils/format';
+import { getProductImageUrl } from '../../utils/productImage';
 
 export default function ProductCard({ producto, onAdd, index = 0 }) {
+  const [imgSrc, setImgSrc] = useState(() => getProductImageUrl(producto));
+
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.05 }}>
       <Card hover className="overflow-hidden p-0">
-        <div className="relative h-40 overflow-hidden">
-          <img src={producto.imagen_url} alt={producto.nombre} className="w-full h-full object-cover" />
+        <div className="relative h-40 overflow-hidden bg-black-secondary">
+          <img
+            src={imgSrc}
+            alt={producto.nombre}
+            className="w-full h-full object-cover"
+            loading="lazy"
+            onError={() => setImgSrc('/products/default.svg')}
+          />
           {producto.destacado && (
             <span className="absolute top-3 left-3 gold-gradient text-black text-xs font-bold px-2 py-1 rounded-full">
               Destacado

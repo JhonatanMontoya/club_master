@@ -6,8 +6,9 @@ import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { apiGet, getPromociones } from '../../services/api';
 import ProductCard from '../../components/product/ProductCard';
+import { getProductImageUrl } from '../../utils/productImage';
 
-const CAT_ICONS = { licores: '🥃', cervezas: '🍺', cocteles: '🍹', combos: '🎉', snacks: '🍟' };
+const CAT_ICONS = { licores: '🥃', cervezas: '🍺', cocteles: '🍹', combos: '🎉', snacks: '🍟', refrescos: '🥤' };
 
 export default function ClientHome() {
   const { user, mesa } = useAuth();
@@ -15,19 +16,27 @@ export default function ClientHome() {
   const navigate = useNavigate();
   const [categorias, setCategorias] = useState([]);
   const [productos, setProductos] = useState([]);
-  const [promo, setPromo] = useState(null);
+  const [promos, setPromos] = useState([]);
   const [catActiva, setCatActiva] = useState(null);
 
   useEffect(() => {
     apiGet('/productos/categorias').then(setCategorias);
     apiGet('/productos', { params: { destacado: '1' } }).then(setProductos);
-    getPromociones().then((p) => setPromo(p[0]));
+    getPromociones().then(setPromos);
   }, []);
 
   const filtrar = async (slug) => {
     setCatActiva(slug);
     const data = await apiGet('/productos', { params: { categoria: slug } });
     setProductos(data);
+  };
+
+  const abrirPromo = (promo) => {
+    if (promo.tipo === '2x1') {
+      filtrar('cocteles');
+      return;
+    }
+    navigate('/cliente/productos');
   };
 
   return (
@@ -38,22 +47,41 @@ export default function ClientHome() {
         <p className="text-gold text-sm">CLUB MASTER · Mesa #{mesa?.numero}</p>
       </div>
 
-      {promo && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="relative rounded-2xl overflow-hidden mb-6 h-36 cursor-pointer"
-          onClick={() => navigate('/cliente/productos')}
-        >
-          <img src={promo.imagen_url} alt="" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/90 to-transparent flex items-center p-6">
-            <div>
-              <span className="text-gold text-xs font-bold">PROMOCIÓN DEL DÍA</span>
-              <h3 className="text-white font-bold text-lg">{promo.titulo}</h3>
-              <p className="text-gray-text text-sm">{promo.descripcion}</p>
-            </div>
-          </div>
-        </motion.div>
+      {promos.length > 0 && (
+        <div className="space-y-3 mb-6">
+          {promos.map((promo, idx) => (
+            <motion.div
+              key={promo.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.08 }}
+              className="relative rounded-2xl overflow-hidden h-36 cursor-pointer border border-gold/20"
+              onClick={() => abrirPromo(promo)}
+            >
+              <img src={getProductImageUrl({ imagen_url: promo.imagen_url })} alt="" className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/70 to-transparent flex items-center p-6">
+                <div className="flex items-center gap-4">
+                  {promo.tipo === '2x1' ? (
+                    <span className="flex-shrink-0 w-16 h-16 rounded-2xl gold-gradient flex items-center justify-center text-black font-black text-xl shadow-lg">
+                      2x1
+                    </span>
+                  ) : (
+                    <span className="flex-shrink-0 w-16 h-16 rounded-2xl gold-gradient flex items-center justify-center text-black font-black text-lg shadow-lg">
+                      -{promo.descuento_porcentaje}%
+                    </span>
+                  )}
+                  <div>
+                    <span className="text-gold text-xs font-bold tracking-wide">
+                      {idx === 0 ? 'PROMOCIÓN DESTACADA' : 'TAMBIÉN DISPONIBLE'}
+                    </span>
+                    <h3 className="text-white font-bold text-lg">{promo.titulo}</h3>
+                    <p className="text-gray-text text-sm line-clamp-2">{promo.descripcion}</p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
       )}
 
       <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide">
