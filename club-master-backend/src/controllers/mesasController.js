@@ -1,11 +1,13 @@
 import { query } from '../config/db.js';
+import { enrichMesaWithSesion } from './mesaSesionesController.js';
 
 export async function getMesas(req, res) {
   try {
     const mesas = await query(
       'SELECT id, numero, codigo_qr, capacidad, zona, estado FROM mesas WHERE activa = 1 ORDER BY numero'
     );
-    res.json(mesas);
+    const enriched = await Promise.all(mesas.map(enrichMesaWithSesion));
+    res.json(enriched);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -19,7 +21,7 @@ export async function getMesaByCodigo(req, res) {
       [codigo, codigo]
     );
     if (!mesas.length) return res.status(404).json({ message: 'Mesa no encontrada' });
-    res.json(mesas[0]);
+    res.json(await enrichMesaWithSesion(mesas[0]));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

@@ -5,6 +5,8 @@ SET FOREIGN_KEY_CHECKS = 0;
 
 DROP TABLE IF EXISTS auditoria_sistema;
 DROP TABLE IF EXISTS historial_pedido;
+DROP TABLE IF EXISTS mesa_sesiones;
+DROP TABLE IF EXISTS configuracion;
 DROP TABLE IF EXISTS pagos;
 DROP TABLE IF EXISTS detalle_pedido;
 DROP TABLE IF EXISTS pedidos;
@@ -38,6 +40,7 @@ CREATE TABLE usuarios (
   email VARCHAR(150) UNIQUE,
   telefono VARCHAR(20),
   password_hash VARCHAR(255),
+  subrol VARCHAR(50),
   activo TINYINT(1) DEFAULT 1,
   es_invitado TINYINT(1) DEFAULT 0,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -54,6 +57,21 @@ CREATE TABLE mesas (
   estado ENUM('disponible', 'ocupada', 'reservada', 'mantenimiento') DEFAULT 'disponible',
   activa TINYINT(1) DEFAULT 1,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE mesa_sesiones (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  mesa_id INT NOT NULL,
+  usuario_id INT NOT NULL,
+  nombre_cliente VARCHAR(120) NOT NULL,
+  estado ENUM('pendiente', 'activa', 'cerrada', 'rechazada') DEFAULT 'pendiente',
+  confirmado_por VARCHAR(120),
+  confirmado_at DATETIME,
+  cerrado_por VARCHAR(120),
+  cerrado_at DATETIME,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (mesa_id) REFERENCES mesas(id),
+  FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
 );
 
 CREATE TABLE reservas (
@@ -87,6 +105,8 @@ CREATE TABLE productos (
   nombre VARCHAR(150) NOT NULL,
   descripcion TEXT,
   precio DECIMAL(12, 2) NOT NULL,
+  precio_descuento DECIMAL(12, 2),
+  descuento_activo TINYINT(1) DEFAULT 0,
   imagen_url VARCHAR(500),
   destacado TINYINT(1) DEFAULT 0,
   activo TINYINT(1) DEFAULT 1,
@@ -99,6 +119,7 @@ CREATE TABLE promociones (
   id INT AUTO_INCREMENT PRIMARY KEY,
   titulo VARCHAR(150) NOT NULL,
   descripcion TEXT,
+  tipo VARCHAR(30) DEFAULT 'descuento',
   descuento_porcentaje DECIMAL(5, 2) DEFAULT 0,
   imagen_url VARCHAR(500),
   fecha_inicio DATE,
@@ -224,6 +245,13 @@ CREATE TABLE auditoria_sistema (
   FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
 );
 
+CREATE TABLE configuracion (
+  id INT PRIMARY KEY DEFAULT 1,
+  data JSON NOT NULL
+);
+
+CREATE INDEX idx_mesa_sesiones_mesa ON mesa_sesiones(mesa_id);
+CREATE INDEX idx_mesa_sesiones_usuario ON mesa_sesiones(usuario_id);
 CREATE INDEX idx_pedidos_estado ON pedidos(estado_id);
 CREATE INDEX idx_pedidos_mesa ON pedidos(mesa_id);
 CREATE INDEX idx_productos_categoria ON productos(categoria_id);

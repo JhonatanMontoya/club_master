@@ -8,11 +8,13 @@ import productosRoutes from './routes/productos.js';
 import pedidosRoutes from './routes/pedidos.js';
 import pagosRoutes from './routes/pagos.js';
 import adminRoutes from './routes/admin.js';
-import { mockRouter } from './routes/mock.js';
+import promocionesRoutes from './routes/promociones.js';
+import pool from './config/db.js';
 
 dotenv.config();
 
 const app = express();
+const enableMock = process.env.ENABLE_MOCK === 'true';
 
 const allowedOrigins = new Set([
   'http://localhost:5173',
@@ -34,8 +36,13 @@ app.use(cors({
 
 app.use(express.json());
 
-app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', service: 'CLUB MASTER API', version: '1.0.0' });
+app.get('/api/health', async (_req, res) => {
+  try {
+    await pool.query('SELECT 1');
+    res.json({ status: 'ok', service: 'CLUB MASTER API', version: '1.0.0', database: 'connected' });
+  } catch (err) {
+    res.status(503).json({ status: 'degraded', service: 'CLUB MASTER API', database: 'disconnected', message: err.message });
+  }
 });
 
 app.use('/api/auth', authRoutes);
@@ -43,13 +50,19 @@ app.use('/api/mesas', mesasRoutes);
 app.use('/api/productos', productosRoutes);
 app.use('/api/pedidos', pedidosRoutes);
 app.use('/api/pagos', pagosRoutes);
+app.use('/api/promociones', promocionesRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/mock', mockRouter);
+
+if (enableMock) {
+  const { mockRouter } = await import('./routes/mock.js');
+  app.use('/api/mock', mockRouter);
+}
 
 app.get('/', (_req, res) => {
   res.json({
     message: 'CLUB MASTER API',
     hint: 'La app web se sirve desde el frontend. Usa /api/health para comprobar el API.',
+    mock: enableMock,
   });
 });
 

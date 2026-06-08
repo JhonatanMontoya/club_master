@@ -1,7 +1,10 @@
 import axios from 'axios';
 
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
+let useMock = import.meta.env.VITE_USE_MOCK === 'true';
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: API_BASE,
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -10,8 +13,6 @@ api.interceptors.request.use((config) => {
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
-
-let useMock = true;
 
 export function setUseMock(value) {
   useMock = value;
@@ -27,6 +28,7 @@ const MOCK_EXACT = {
   '/pedidos/estados': '/mock/estados-pedido',
   '/pedidos/staff': '/mock/pedidos/staff',
   '/pagos/metodos': '/mock/metodos-pago',
+  '/promociones': '/mock/promociones',
   '/admin/dashboard': '/mock/admin/dashboard',
   '/admin/productos': '/mock/admin/productos',
   '/admin/categorias': '/mock/admin/categorias',
@@ -43,7 +45,7 @@ const MOCK_EXACT = {
   '/admin/mesas': '/mock/admin/mesas',
 };
 
-function resolveMock(path, method) {
+function resolveMock(path) {
   if (MOCK_EXACT[path]) return MOCK_EXACT[path];
   if (path.startsWith('/admin/')) return `/mock${path}`;
   if (path.startsWith('/pedidos')) return `/mock${path}`;
@@ -53,7 +55,7 @@ function resolveMock(path, method) {
 
 export async function apiGet(path, config = {}) {
   if (useMock) {
-    const mp = resolveMock(path, 'GET');
+    const mp = resolveMock(path);
     if (mp) {
       const res = await api.get(mp, config);
       return res.data;
@@ -65,7 +67,7 @@ export async function apiGet(path, config = {}) {
 
 export async function apiPost(path, data) {
   if (useMock) {
-    const mp = resolveMock(path, 'POST');
+    const mp = resolveMock(path);
     if (mp) {
       const res = await api.post(mp, data);
       return res.data;
@@ -77,7 +79,7 @@ export async function apiPost(path, data) {
 
 export async function apiPut(path, data) {
   if (useMock) {
-    const mp = resolveMock(path, 'PUT');
+    const mp = resolveMock(path);
     if (mp) {
       const res = await api.put(mp, data);
       return res.data;
@@ -89,7 +91,7 @@ export async function apiPut(path, data) {
 
 export async function apiPatch(path, data) {
   if (useMock) {
-    const mp = resolveMock(path, 'PATCH');
+    const mp = resolveMock(path);
     if (mp) {
       const res = await api.patch(mp, data);
       return res.data;
@@ -101,7 +103,7 @@ export async function apiPatch(path, data) {
 
 export async function apiDelete(path) {
   if (useMock) {
-    const mp = resolveMock(path, 'DELETE');
+    const mp = resolveMock(path);
     if (mp) {
       const res = await api.delete(mp);
       return res.data;
@@ -136,21 +138,11 @@ export async function staffUpdateEstado(pedidoId, estado) {
 }
 
 export async function getMesaByCodigo(codigo) {
-  if (useMock) {
-    const res = await api.get(`/mock/mesas/codigo/${codigo}`);
-    return res.data;
-  }
-  const res = await api.get(`/mesas/codigo/${codigo}`);
-  return res.data;
+  return apiGet(`/mesas/codigo/${codigo}`);
 }
 
 export async function getPromociones() {
-  if (useMock) {
-    const res = await api.get('/mock/promociones');
-    return res.data;
-  }
-  const res = await api.get('/admin/promociones');
-  return res.data;
+  return apiGet('/promociones');
 }
 
 export async function createPedido(data) {

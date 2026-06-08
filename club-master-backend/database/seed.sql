@@ -6,11 +6,13 @@ INSERT INTO roles (nombre, descripcion) VALUES
 ('admin', 'Administrador del sistema');
 
 INSERT INTO estados_pedido (nombre, orden, color) VALUES
+('pendiente_aprobacion', 0, '#EAB308'),
 ('recibido', 1, '#D4AF37'),
 ('en_preparacion', 2, '#F4C542'),
 ('listo', 3, '#4CAF50'),
 ('en_camino', 4, '#2196F3'),
-('entregado', 5, '#FFFFFF');
+('entregado', 5, '#FFFFFF'),
+('cancelado', 6, '#EF4444');
 
 INSERT INTO metodos_pago (nombre, codigo) VALUES
 ('QR', 'qr'),
@@ -72,9 +74,23 @@ INSERT INTO productos (categoria_id, nombre, descripcion, precio, imagen_url, de
 (6, 'Gatorade Azul 500ml', 'Bebida deportiva', 9000, '/products/29.jpg', 0),
 (6, 'Limonada Natural', 'Limonada con hierbabuena', 10000, '/products/30.jpg', 0);
 
-INSERT INTO promociones (titulo, descripcion, descuento_porcentaje, imagen_url, fecha_inicio, fecha_fin, activa) VALUES
-('2x1 en Cócteles', 'Pide 2 cócteles y paga solo 1. Válido todos los días hasta las 10:00 p.m.', 50, '/products/4.jpg', CURDATE(), DATE_ADD(CURDATE(), INTERVAL 180 DAY), 1),
-('Combo Fin de Semana', '15% de descuento en combos los viernes y sábados', 15, '/products/6.jpg', CURDATE(), DATE_ADD(CURDATE(), INTERVAL 60 DAY), 1);
+INSERT INTO promociones (titulo, descripcion, tipo, descuento_porcentaje, imagen_url, fecha_inicio, fecha_fin, activa) VALUES
+('2x1 en Cócteles', 'Pide 2 cócteles y paga solo 1. Válido todos los días hasta las 10:00 p.m.', '2x1', 50, '/products/17.jpg', CURDATE(), DATE_ADD(CURDATE(), INTERVAL 180 DAY), 1),
+('Combo Fin de Semana', '15% de descuento en combos los viernes y sábados', 'descuento', 15, '/products/21.jpg', CURDATE(), DATE_ADD(CURDATE(), INTERVAL 60 DAY), 1);
+
+INSERT INTO configuracion (id, data) VALUES (1, JSON_OBJECT(
+  'negocio', 'CLUB MASTER',
+  'slogan', 'Gestiona, vende y brilla',
+  'logo_url', '/logo-club-master.png',
+  'moneda', 'COP',
+  'timezone', 'America/Bogota',
+  'iva', 0,
+  'colores', JSON_OBJECT('primario', '#D4AF37', 'secundario', '#111111', 'fondo', '#000000', 'texto', '#FFFFFF'),
+  'fuente', 'Inter',
+  'telefono', '300 123 4567',
+  'direccion', 'Calle Principal #123',
+  'horario', 'Jue-Dom 8pm - 3am'
+));
 
 INSERT INTO detalle_promocion (promocion_id, producto_id, cantidad) VALUES
 (1, 17, 1), (1, 18, 1), (1, 19, 1), (1, 20, 1),
