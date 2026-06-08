@@ -8,8 +8,7 @@
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
     "db:migrate": "node src/scripts/migrate.js",
-    "db:seed": "node src/scripts/seed.js",
-    "vercel-build": "npm run build --prefix ../club-master-frontend && rm -rf public && cp -r ../club-master-frontend/dist public"
+    "db:seed": "node src/scripts/seed.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
