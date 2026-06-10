@@ -6,12 +6,17 @@ import {
 } from '../../services/api';
 import { apiGet } from '../../services/api';
 import Button from '../../components/ui/Button';
+import Card from '../../components/ui/Card';
 import OrderStatusBadge from '../../components/staff/OrderStatusBadge';
 import { ORDER_STATUS, STAFF_FILTERS, getOrderStatus } from '../../utils/orderStatus';
 import { formatCOP, formatTime } from '../../utils/format';
 import PedidosAprobacionPanel from '../../components/pedidos/PedidosAprobacionPanel';
 
 const ACCIONES_ESTADO = ['recibido', 'en_preparacion', 'listo', 'entregado'];
+
+function parseError(e) {
+  return e.response?.data?.message || e.message || 'No se pudo completar la acción';
+}
 
 function resumenPedido(detalle = []) {
   if (!detalle.length) return 'Sin productos';
@@ -24,12 +29,21 @@ export default function StaffDashboard() {
   const [expandedId, setExpandedId] = useState(null);
   const [productos, setProductos] = useState([]);
   const [addProductId, setAddProductId] = useState('');
+  const [loadError, setLoadError] = useState('');
+  const [actionError, setActionError] = useState('');
+  const [busy, setBusy] = useState(false);
 
   const expanded = pedidos.find((p) => p.id === expandedId) || null;
 
   const load = async () => {
-    const list = await staffGetPedidos(filtro);
-    setPedidos(list);
+    try {
+      const list = await staffGetPedidos(filtro);
+      setPedidos(Array.isArray(list) ? list : []);
+      setLoadError('');
+    } catch (e) {
+      setPedidos([]);
+      setLoadError(parseError(e));
+    }
   };
 
   useEffect(() => {
@@ -55,34 +69,66 @@ export default function StaffDashboard() {
   };
 
   const cambiarEstado = async (id, estado) => {
-    await staffUpdateEstado(id, estado);
-    await refreshExpanded(id);
+    setBusy(true);
+    setActionError('');
+    try {
+      await staffUpdateEstado(id, estado);
+      await refreshExpanded(id);
+      await load();
+    } catch (e) {
+      setActionError(parseError(e));
+    } finally {
+      setBusy(false);
+    }
   };
 
   const agregarProducto = async () => {
     if (!expanded || !addProductId) return;
-    await staffAddItem(expanded.id, Number(addProductId), 1);
-    setAddProductId('');
-    await refreshExpanded(expanded.id);
+    setBusy(true);
+    setActionError('');
+    try {
+      await staffAddItem(expanded.id, Number(addProductId), 1);
+      setAddProductId('');
+      await refreshExpanded(expanded.id);
+    } catch (e) {
+      setActionError(parseError(e));
+    } finally {
+      setBusy(false);
+    }
   };
 
   const cambiarCantidad = async (productoId, cantidad) => {
     if (!expanded) return;
-    await staffUpdateItemQty(expanded.id, productoId, cantidad);
-    await refreshExpanded(expanded.id);
+    setBusy(true);
+    setActionError('');
+    try {
+      await staffUpdateItemQty(expanded.id, productoId, cantidad);
+      await refreshExpanded(expanded.id);
+    } catch (e) {
+      setActionError(parseError(e));
+    } finally {
+      setBusy(false);
+    }
   };
 
   const eliminarItem = async (productoId) => {
     if (!expanded) return;
-    await staffRemoveItem(expanded.id, productoId);
-    await refreshExpanded(expanded.id);
+    setBusy(true);
+    setActionError('');
+    try {
+      await staffRemoveItem(expanded.id, productoId);
+      await refreshExpanded(expanded.id);
+    } catch (e) {
+      setActionError(parseError(e));
+    } finally {
+      setBusy(false);
+    }
   };
 
   const cancelarPedido = async () => {
     if (!expanded || !confirm('¿Cancelar este pedido?')) return;
     await cambiarEstado(expanded.id, 'cancelado');
     setExpandedId(null);
-    load();
   };
 
   return (
@@ -100,6 +146,17 @@ export default function StaffDashboard() {
           </div>
         ))}
       </div>
+
+      {loadError && (
+        <Card className="mb-4 !p-4 border border-red-500/40">
+          <p className="text-red-400 text-sm">{loadError}</p>
+          <Button variant="outline" className="mt-2 !py-2 text-sm" onClick={load}>Reintentar</Button>
+        </Card>
+      )}
+
+      {actionError && (
+        <p className="text-red-400 text-sm mb-4 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-2">{actionError}</p>
+      )}
 
       <div className="flex gap-2 flex-wrap mb-6">
         {STAFF_FILTERS.map((f) => (
@@ -276,7 +333,8 @@ export default function StaffDashboard() {
                                 key={estado}
                                 type="button"
                                 onClick={() => cambiarEstado(p.id, estado)}
-                                className="py-2.5 px-3 rounded-xl text-xs font-medium border-2 transition-all"
+                                disabled={busy}
+                                className="py-2.5 px-3 rounded-xl text-xs font-medium border-2 transition-all disabled:opacity-50"
                                 style={{
                                   background: active ? s.color : s.bg,
                                   borderColor: s.border,

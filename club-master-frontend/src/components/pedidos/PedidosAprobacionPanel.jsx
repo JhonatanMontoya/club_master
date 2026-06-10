@@ -6,15 +6,26 @@ import Badge from '../ui/Badge';
 import { apiGet, aprobarPedido, rechazarPedido } from '../../services/api';
 import { formatCOP, formatTime } from '../../utils/format';
 
+function parseError(e) {
+  return e.response?.data?.message || e.message || 'No se pudo completar la acción';
+}
+
 export default function PedidosAprobacionPanel({ onUpdate, pollMs = 4000 }) {
   const [pendientes, setPendientes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [actionError, setActionError] = useState('');
+  const [busyId, setBusyId] = useState(null);
 
   const load = useCallback(async () => {
     try {
       const data = await apiGet('/pedidos/pendientes-aprobacion');
-      setPendientes(data);
+      setPendientes(Array.isArray(data) ? data : []);
+      setError('');
       onUpdate?.(data);
+    } catch (e) {
+      setError(parseError(e));
+      setPendientes([]);
     } finally {
       setLoading(false);
     }
@@ -27,20 +38,45 @@ export default function PedidosAprobacionPanel({ onUpdate, pollMs = 4000 }) {
   }, [load, pollMs]);
 
   const aprobar = async (id) => {
-    await aprobarPedido(id);
-    load();
+    setBusyId(id);
+    setActionError('');
+    try {
+      await aprobarPedido(id);
+      await load();
+    } catch (e) {
+      setActionError(parseError(e));
+    } finally {
+      setBusyId(null);
+    }
   };
 
   const rechazar = async (id) => {
     if (!window.confirm('¿Rechazar este pedido del cliente?')) return;
-    await rechazarPedido(id);
-    load();
+    setBusyId(id);
+    setActionError('');
+    try {
+      await rechazarPedido(id);
+      await load();
+    } catch (e) {
+      setActionError(parseError(e));
+    } finally {
+      setBusyId(null);
+    }
   };
 
   if (loading) {
     return (
       <Card className="mb-6 !p-4 border border-amber-500/30">
         <p className="text-gray-text text-sm">Buscando pedidos por aprobar…</p>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="mb-6 !p-4 border border-red-500/40">
+        <p className="text-red-400 text-sm">{error}</p>
+        <Button variant="outline" className="mt-2 !py-2 text-sm" onClick={load}>Reintentar</Button>
       </Card>
     );
   }
@@ -57,6 +93,9 @@ export default function PedidosAprobacionPanel({ onUpdate, pollMs = 4000 }) {
       <p className="text-gray-text text-sm mb-4">
         Un cliente solicitó un pedido. Confirma que la mesa es correcta antes de enviarlo a cocina/bar.
       </p>
+      {actionError && (
+        <p className="text-red-400 text-sm mb-4 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">{actionError}</p>
+      )}
       <div className="space-y-3">
         {pendientes.map((p) => (
           <div
@@ -71,17 +110,23 @@ export default function PedidosAprobacionPanel({ onUpdate, pollMs = 4000 }) {
                 <span className="text-gray-text text-xs">{formatTime(p.created_at)}</span>
               </div>
               <p className="text-gray-text text-sm line-clamp-2">
-                {p.detalle?.map((d) => `${d.cantidad}x ${d.nombre}`).join(' · ')}
+                {p.detalle?.map((d) => `${d.cantidad}x ${d.nombre}`).join(' · ') || 'Sin detalle'}
               </p>
               <p className="text-gold font-bold mt-2">{formatCOP(p.total)}</p>
             </div>
             <div className="flex gap-2 flex-shrink-0">
-              <Button className="!py-2 !px-4 text-sm" onClick={() => aprobar(p.id)}>
+              <Button
+                className="!py-2 !px-4 text-sm"
+                loading={busyId === p.id}
+                disabled={busyId !== null && busyId !== p.id}
+                onClick={() => aprobar(p.id)}
+              >
                 <FiCheck className="inline mr-1" /> Aprobar pedido
               </Button>
               <Button
                 variant="outline"
                 className="!py-2 !px-4 text-sm !border-red-500/40 !text-red-400"
+                disabled={busyId !== null}
                 onClick={() => rechazar(p.id)}
               >
                 <FiX className="inline mr-1" /> Rechazar

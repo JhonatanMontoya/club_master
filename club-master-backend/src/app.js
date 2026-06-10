@@ -9,7 +9,7 @@ import pedidosRoutes from './routes/pedidos.js';
 import pagosRoutes from './routes/pagos.js';
 import adminRoutes from './routes/admin.js';
 import promocionesRoutes from './routes/promociones.js';
-import pool from './config/db.js';
+import { query } from './config/db.js';
 
 dotenv.config();
 
@@ -38,7 +38,7 @@ app.use(express.json());
 
 app.get('/api/health', async (_req, res) => {
   try {
-    await pool.query('SELECT 1');
+    await query('SELECT 1');
     res.json({ status: 'ok', service: 'CLUB MASTER API', version: '1.0.0', database: 'connected' });
   } catch (err) {
     res.status(503).json({ status: 'degraded', service: 'CLUB MASTER API', database: 'disconnected', message: err.message });

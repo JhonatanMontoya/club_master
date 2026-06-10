@@ -16,7 +16,15 @@ async function liberarMesaSiCorresponde(mesaId, sesionId) {
      WHERE mesa_id = ? AND id != ? AND estado IN ('pendiente', 'activa')`,
     [mesaId, sesionId]
   );
-  if (!otras.length) {
+  if (otras.length) return;
+
+  const pedidosActivos = await query(
+    `SELECT p.id FROM pedidos p
+     JOIN estados_pedido e ON e.id = p.estado_id
+     WHERE p.mesa_id = ? AND e.nombre NOT IN ('entregado', 'cancelado')`,
+    [mesaId]
+  );
+  if (!pedidosActivos.length) {
     await query("UPDATE mesas SET estado = 'disponible' WHERE id = ?", [mesaId]);
   }
 }
@@ -147,6 +155,42 @@ export async function createSesion(req, res) {
           : null,
       },
     });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+}
+
+export async function confirmarSesion(req, res) {
+  try {
+    const sesiones = await query('SELECT * FROM mesa_sesiones WHERE id = ?', [req.params.id]);
+    if (!sesiones.length) return res.status(404).json({ message: 'Sesión no encontrada' });
+
+    const sesion = sesiones[0];
+    if (sesion.estado !== 'pendiente') {
+      return res.status(400).json({ message: 'La sesión ya fue procesada' });
+    }
+
+    const conflicto = await query(
+      `SELECT id FROM mesa_sesiones
+       WHERE mesa_id = ? AND id != ? AND estado = 'activa'`,
+      [sesion.mesa_id, sesion.id]
+    );
+    if (conflicto.length) {
+      return res.status(409).json({ message: 'Ya hay un cliente activo en esta mesa' });
+    }
+
+    await query(
+      `UPDATE mesa_sesiones SET estado = 'activa', confirmado_por = ?, confirmado_at = NOW() WHERE id = ?`,
+      [req.user.nombre, sesion.id]
+    );
+    await query("UPDATE mesas SET estado = 'ocupada' WHERE id = ?", [sesion.mesa_id]);
+
+    const rows = await query(
+      `SELECT s.*, m.numero AS mesa_numero FROM mesa_sesiones s
+       JOIN mesas m ON m.id = s.mesa_id WHERE s.id = ?`,
+      [sesion.id]
+    );
+    res.json(formatSesion(rows[0]));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import bcrypt from 'bcryptjs';
-import pool from '../config/db.js';
+import { query } from '../config/db.js';
 import seedPedidos from './seedPedidos.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -21,20 +21,15 @@ async function runSqlFile(filePath) {
     .map((s) => s.trim())
     .filter((s) => s.length > 0);
 
-  const conn = await pool.getConnection();
-  try {
-    for (const stmt of statements) {
-      if (stmt) await conn.query(stmt);
-    }
-  } finally {
-    conn.release();
+  for (const stmt of statements) {
+    if (stmt) await query(stmt);
   }
 }
 
 async function seedUsers() {
-  const roles = await pool.execute('SELECT COUNT(*) AS c FROM roles');
-  if (roles[0][0].c === 0) {
-    await pool.execute(
+  const roles = await query('SELECT COUNT(*) AS c FROM roles');
+  if (roles[0].c === 0) {
+    await query(
       `INSERT INTO roles (nombre, descripcion) VALUES
        ('cliente', 'Usuario final que realiza pedidos'),
        ('staff', 'Personal operativo del local'),
@@ -46,7 +41,7 @@ async function seedUsers() {
   const staffHash = await bcrypt.hash('staff123', 10);
   const clientHash = await bcrypt.hash('cliente123', 10);
 
-  await pool.execute(
+  await query(
     `INSERT IGNORE INTO usuarios (id, rol_id, nombre, email, telefono, password_hash) VALUES
      (1, 3, 'Admin CLUB MASTER', 'admin@clubmaster.com', '3000000001', ?),
      (2, 2, 'Staff Operativo', 'staff@clubmaster.com', '3000000002', ?),

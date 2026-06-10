@@ -17,7 +17,9 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401 && !err.config?.url?.includes('/auth/login')) {
+    const isLogin = err.config?.url?.includes('/auth/login');
+    const isInvalidToken = err.response?.data?.message?.includes('Token');
+    if (err.response?.status === 401 && !isLogin && isInvalidToken) {
       localStorage.removeItem('club_master_token');
       localStorage.removeItem('club_master_user');
     }
@@ -165,11 +167,11 @@ export async function getPedido(id) {
 }
 
 export async function aprobarPedido(id) {
-  return apiPatch(`/pedidos/${id}/aprobar`);
+  return apiPatch(`/pedidos/${id}/aprobar`, {});
 }
 
 export async function rechazarPedido(id) {
-  return apiPatch(`/pedidos/${id}/rechazar`);
+  return apiPatch(`/pedidos/${id}/rechazar`, {});
 }
 
 export default api;

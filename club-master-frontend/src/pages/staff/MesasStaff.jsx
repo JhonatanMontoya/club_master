@@ -18,15 +18,17 @@ export default function MesasStaff() {
   const [mesas, setMesas] = useState([]);
   const navigate = useNavigate();
 
+  const loadMesas = () => apiGet('/mesas').then((d) => setMesas(Array.isArray(d) ? d : [])).catch(() => setMesas([]));
+
   useEffect(() => {
-    apiGet('/mesas').then(setMesas);
-    const i = setInterval(() => apiGet('/mesas').then(setMesas), 10000);
+    loadMesas();
+    const i = setInterval(loadMesas, 10000);
     return () => clearInterval(i);
   }, []);
 
   const stats = {
-    disponible: mesas.filter((m) => m.estado === 'disponible').length,
-    ocupada: mesas.filter((m) => m.estado === 'ocupada').length,
+    disponible: mesas.filter((m) => m.estado === 'disponible' && !m.sesion).length,
+    ocupada: mesas.filter((m) => m.estado === 'ocupada' || m.sesion).length,
     reservada: mesas.filter((m) => m.estado === 'reservada').length,
   };
 
@@ -40,7 +42,7 @@ export default function MesasStaff() {
       <p className="text-gray-text text-sm mb-6">Vista rápida para el mesero</p>
 
       <PedidosAprobacionPanel pollMs={3000} />
-      <MesaSesionesPanel onUpdate={() => apiGet('/mesas').then(setMesas)} />
+      <MesaSesionesPanel onUpdate={loadMesas} />
 
       <div className="grid grid-cols-3 gap-4 mb-8 max-w-lg">
         <Card className="text-center !p-4">

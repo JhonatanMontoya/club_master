@@ -2,7 +2,7 @@
  * Inserta pedidos de demostración para el panel staff.
  * Uso: npm run db:seed-pedidos
  */
-import pool, { query } from '../config/db.js';
+import { query } from '../config/db.js';
 
 const DEMO_TAG = 'DEMO_SEED';
 
@@ -150,12 +150,12 @@ async function seedPedidos({ reset = true } = {}) {
     const notas = `${demo.notas} [${DEMO_TAG}]`;
     const createdAt = new Date(Date.now() - demo.minutosAtras * 60 * 1000);
 
-    const result = await pool.execute(
+    const result = await query(
       `INSERT INTO pedidos (usuario_id, mesa_id, estado_id, subtotal, total, notas, nombre_cliente, created_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [usuarioId, mesaId, estadoId, subtotal, subtotal, notas, demo.nombre, createdAt]
     );
-    const pedidoId = result[0].insertId;
+    const pedidoId = result.insertId;
 
     for (const linea of lineas) {
       await query(
