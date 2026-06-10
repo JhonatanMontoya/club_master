@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
-    "db:migrate": "node src/scripts/migrate.js"
+    "db:migrate": "node src/scripts/migrate.js",
+    "db:seed-pedidos": "node src/scripts/seedPedidos.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",

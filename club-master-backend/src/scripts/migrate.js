@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import bcrypt from 'bcryptjs';
 import pool from '../config/db.js';
+import seedPedidos from './seedPedidos.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -60,6 +61,8 @@ async function migrate() {
   console.log('Ejecutando seed...');
   await runSqlFile(path.join(__dirname, '../../database/seed.sql'));
   await seedUsers();
+  console.log('Insertando pedidos demo...');
+  await seedPedidos({ reset: false });
   console.log('Migración completada.');
   process.exit(0);
 }
