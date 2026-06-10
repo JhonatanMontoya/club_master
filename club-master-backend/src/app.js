@@ -9,6 +9,7 @@ import pedidosRoutes from './routes/pedidos.js';
 import pagosRoutes from './routes/pagos.js';
 import adminRoutes from './routes/admin.js';
 import promocionesRoutes from './routes/promociones.js';
+import { getConfig } from './controllers/adminController.js';
 import { query } from './config/db.js';
 
 dotenv.config();
@@ -51,6 +52,7 @@ app.use('/api/productos', productosRoutes);
 app.use('/api/pedidos', pedidosRoutes);
 app.use('/api/pagos', pagosRoutes);
 app.use('/api/promociones', promocionesRoutes);
+app.get('/api/config', getConfig);
 app.use('/api/admin', adminRoutes);
 
 if (enableMock) {

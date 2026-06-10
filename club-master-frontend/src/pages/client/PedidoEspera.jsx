@@ -24,7 +24,7 @@ export default function PedidoEspera() {
       const p = await getPedido(activePedido.id);
       setPedido(p);
       if (p.estado === 'recibido') {
-        setActivePedido({ id: p.id, estado: p.estado });
+        setActivePedido({ id: p.id, estado: p.estado, total: p.total });
         navigate('/cliente/pago', { replace: true });
       } else if (p.estado === 'cancelado') {
         setRechazado(true);

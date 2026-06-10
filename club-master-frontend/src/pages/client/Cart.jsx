@@ -23,7 +23,7 @@ export default function Cart() {
         nombre_cliente: user?.nombre,
         items: items.map((i) => ({ producto_id: i.id, cantidad: i.cantidad })),
       });
-      setActivePedido({ id: pedido.id, estado: pedido.estado });
+      setActivePedido({ id: pedido.id, estado: pedido.estado, total: pedido.total ?? total });
       clearCart();
       if (pedido.estado === 'pendiente_aprobacion') {
         navigate('/cliente/espera-pedido');

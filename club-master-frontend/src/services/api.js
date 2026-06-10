@@ -42,6 +42,7 @@ const MOCK_EXACT = {
   '/pedidos/staff': '/mock/pedidos/staff',
   '/pagos/metodos': '/mock/metodos-pago',
   '/promociones': '/mock/promociones',
+  '/config': '/mock/admin/config',
   '/admin/dashboard': '/mock/admin/dashboard',
   '/admin/productos': '/mock/admin/productos',
   '/admin/categorias': '/mock/admin/categorias',

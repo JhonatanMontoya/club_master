@@ -230,16 +230,23 @@ export async function createAdminPromocion(req, res) {
 
 export async function updateAdminPromocion(req, res) {
   try {
-    const { titulo, descripcion, tipo, descuento_porcentaje, imagen_url, fecha_inicio, fecha_fin, activa, producto_ids } = req.body;
+    const rows = await query('SELECT * FROM promociones WHERE id = ?', [req.params.id]);
+    if (!rows.length) return res.status(404).json({ message: 'No encontrado' });
+    const cur = rows[0];
+    const {
+      titulo = cur.titulo, descripcion = cur.descripcion, tipo = cur.tipo,
+      descuento_porcentaje = cur.descuento_porcentaje, imagen_url = cur.imagen_url,
+      fecha_inicio = cur.fecha_inicio, fecha_fin = cur.fecha_fin,
+      activa = cur.activa, producto_ids,
+    } = req.body;
     await query(
       `UPDATE promociones SET titulo=?, descripcion=?, tipo=?, descuento_porcentaje=?, imagen_url=?,
        fecha_inicio=?, fecha_fin=?, activa=? WHERE id=?`,
       [titulo, descripcion, tipo, descuento_porcentaje, imagen_url, fecha_inicio, fecha_fin, activa ?? 1, req.params.id]
     );
     if (producto_ids) await syncPromocionProductos(req.params.id, producto_ids);
-    const rows = await query('SELECT * FROM promociones WHERE id = ?', [req.params.id]);
-    if (!rows.length) return res.status(404).json({ message: 'No encontrado' });
-    res.json(await enrichPromocion(rows[0]));
+    const updated = await query('SELECT * FROM promociones WHERE id = ?', [req.params.id]);
+    res.json(await enrichPromocion(updated[0]));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -261,7 +268,7 @@ export async function createAdminReserva(req, res) {
     const result = await query(
       `INSERT INTO reservas (mesa_id, nombre_cliente, telefono, fecha_reserva, personas, notas, estado)
        VALUES (?, ?, ?, ?, ?, ?, 'pendiente')`,
-      [mesa_id, nombre_cliente, telefono, fecha_reserva, personas || 2, notas]
+      [mesa_id, nombre_cliente, telefono ?? null, fecha_reserva, personas || 2, notas ?? null]
     );
     await query("UPDATE mesas SET estado = 'reservada' WHERE id = ?", [mesa_id]);
     const rows = await query(
@@ -388,11 +395,15 @@ export async function createAdminStaff(req, res) {
 
 export async function updateAdminStaff(req, res) {
   try {
-    const { nombre, email, telefono, subrol, activo } = req.body;
-    await query(
-      'UPDATE usuarios SET nombre=?, email=?, telefono=?, subrol=?, activo=? WHERE id=?',
-      [nombre, email, telefono, subrol, activo ?? 1, req.params.id]
-    );
+    const fields = ['nombre', 'email', 'telefono', 'subrol', 'activo'];
+    const sets = [];
+    const params = [];
+    for (const f of fields) {
+      if (req.body[f] !== undefined) { sets.push(`${f} = ?`); params.push(req.body[f]); }
+    }
+    if (!sets.length) return res.status(400).json({ message: 'Sin cambios' });
+    params.push(req.params.id);
+    await query(`UPDATE usuarios SET ${sets.join(', ')} WHERE id = ?`, params);
     const rows = await query(
       `SELECT u.id, u.nombre, u.email, u.telefono, u.subrol, u.activo FROM usuarios u
        JOIN roles r ON r.id = u.rol_id WHERE u.id = ? AND r.nombre = 'staff'`,

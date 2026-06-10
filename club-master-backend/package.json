@@ -9,7 +9,8 @@
     "start": "node src/index.js",
     "db:migrate": "node src/scripts/migrate.js",
     "db:seed-pedidos": "node src/scripts/seedPedidos.js",
-    "test:flow": "node scripts/simulate-flow.mjs"
+    "test:flow": "node scripts/simulate-flow.mjs",
+    "test:site": "node scripts/test-full-site.mjs"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",

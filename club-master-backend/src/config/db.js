@@ -15,11 +15,28 @@ function isConnectionLimitError(err) {
   return err?.message?.includes('max_user_connections');
 }
 
+async function openConnection(retries = 5) {
+  let lastErr;
+  for (let attempt = 0; attempt < retries; attempt += 1) {
+    try {
+      return await mysql.createConnection(dbConfig);
+    } catch (err) {
+      lastErr = err;
+      if (isConnectionLimitError(err) && attempt < retries - 1) {
+        await new Promise((r) => setTimeout(r, 600 * (attempt + 1)));
+        continue;
+      }
+      throw err;
+    }
+  }
+  throw lastErr;
+}
+
 /** Una conexión por consulta: libera el slot en Clever Cloud (máx. 5). */
 export async function query(sql, params = [], retries = 5) {
   let lastErr;
   for (let attempt = 0; attempt < retries; attempt += 1) {
-    const conn = await mysql.createConnection(dbConfig);
+    const conn = await openConnection(retries);
     try {
       const [rows] = await conn.execute(sql, params);
       return rows;
@@ -38,7 +55,7 @@ export async function query(sql, params = [], retries = 5) {
 }
 
 export async function withTransaction(fn) {
-  const conn = await mysql.createConnection(dbConfig);
+  const conn = await openConnection();
   try {
     await conn.beginTransaction();
     const result = await fn(conn);

@@ -10,7 +10,7 @@ export function SiteConfigProvider({ children }) {
   const [config, setConfig] = useState(() => loadSiteConfig() || DEFAULT_SITE_CONFIG);
 
   useEffect(() => {
-    apiGet('/admin/config')
+    apiGet('/config')
       .then((apiConfig) => {
         const stored = loadSiteConfig();
         const merged = stored ? { ...apiConfig, ...stored, colores: { ...apiConfig.colores, ...stored?.colores } } : apiConfig;
