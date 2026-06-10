@@ -11,11 +11,15 @@ const variants = {
 export default function Button({
   children, variant = 'primary', className = '', loading = false, disabled, ...props
 }) {
+  const isDisabled = disabled || loading;
+
   return (
     <motion.button
-      whileTap={{ scale: 0.97 }}
-      className={`px-6 py-3 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${variants[variant]} ${className}`}
-      disabled={disabled || loading}
+      whileHover={isDisabled ? undefined : { scale: 1.05 }}
+      whileTap={isDisabled ? undefined : { scale: 0.97 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+      className={`px-6 py-3 rounded-xl transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 ${variants[variant]} ${className}`}
+      disabled={isDisabled}
       {...props}
     >
       {loading ? 'Cargando...' : children}

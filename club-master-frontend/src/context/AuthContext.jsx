@@ -55,14 +55,38 @@ export function AuthProvider({ children }) {
   }, [user, clearMesaSession]);
 
   useEffect(() => {
-    const token = localStorage.getItem('club_master_token');
-    const savedUser = localStorage.getItem('club_master_user');
-    const savedMesa = localStorage.getItem('club_master_mesa');
-    const savedSesion = localStorage.getItem(SESION_KEY);
-    if (token && savedUser) setUser(JSON.parse(savedUser));
-    if (savedSesion) setMesaSesion(JSON.parse(savedSesion));
-    if (savedMesa) setMesa(JSON.parse(savedMesa));
-    setLoading(false);
+    async function initAuth() {
+      const token = localStorage.getItem('club_master_token');
+      const savedMesa = localStorage.getItem('club_master_mesa');
+      const savedSesion = localStorage.getItem(SESION_KEY);
+
+      if (token) {
+        try {
+          const me = await apiGet('/auth/me');
+          setUser(me);
+          localStorage.setItem('club_master_user', JSON.stringify(me));
+          if (me.rol !== 'cliente') {
+            localStorage.removeItem('club_master_mesa');
+            localStorage.removeItem(SESION_KEY);
+            setMesa(null);
+            setMesaSesion(null);
+          } else {
+            if (savedSesion) setMesaSesion(JSON.parse(savedSesion));
+            if (savedMesa) setMesa(JSON.parse(savedMesa));
+          }
+        } catch {
+          localStorage.removeItem('club_master_token');
+          localStorage.removeItem('club_master_user');
+          localStorage.removeItem('club_master_mesa');
+          localStorage.removeItem(SESION_KEY);
+          setUser(null);
+        }
+      } else {
+        localStorage.removeItem('club_master_user');
+      }
+      setLoading(false);
+    }
+    initAuth();
   }, []);
 
   useEffect(() => {
@@ -79,6 +103,12 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     const data = await apiPost('/auth/login', { email, password });
+    if (data.user.rol !== 'cliente') {
+      localStorage.removeItem('club_master_mesa');
+      localStorage.removeItem(SESION_KEY);
+      setMesa(null);
+      setMesaSesion(null);
+    }
     persist(data.token, data.user);
     return data.user;
   };

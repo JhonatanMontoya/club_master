@@ -32,7 +32,14 @@ export default function Login() {
       else if (user.rol === 'staff') navigate('/staff');
       else navigate('/mesa');
     } catch (err) {
-      setError(err.response?.data?.message || 'Error al iniciar sesión');
+      const msg = err.response?.data?.message;
+      if (err.response?.status === 500 && msg?.includes('max_user_connections')) {
+        setError('El servidor está saturado. Espera unos segundos e intenta de nuevo.');
+      } else if (err.code === 'ERR_NETWORK' || !err.response) {
+        setError('No se pudo conectar con el servidor. Verifica que el backend esté activo.');
+      } else {
+        setError(msg || 'Error al iniciar sesión');
+      }
     } finally {
       setLoading(false);
     }

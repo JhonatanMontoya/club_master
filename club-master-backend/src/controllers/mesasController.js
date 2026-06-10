@@ -6,7 +6,15 @@ export async function getMesas(req, res) {
     const mesas = await query(
       'SELECT id, numero, codigo_qr, capacidad, zona, estado FROM mesas WHERE activa = 1 ORDER BY numero'
     );
-    const enriched = await Promise.all(mesas.map(enrichMesaWithSesion));
+    const enriched = await Promise.all(
+      mesas.map(async (m) => {
+        try {
+          return await enrichMesaWithSesion(m);
+        } catch {
+          return { ...m, sesion: null };
+        }
+      })
+    );
     res.json(enriched);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -16,9 +24,10 @@ export async function getMesas(req, res) {
 export async function getMesaByCodigo(req, res) {
   try {
     const { codigo } = req.params;
+    const numero = Number(codigo);
     const mesas = await query(
-      'SELECT id, numero, codigo_qr, capacidad, zona, estado FROM mesas WHERE codigo_qr = ? OR numero = ?',
-      [codigo, codigo]
+      'SELECT id, numero, codigo_qr, capacidad, zona, estado FROM mesas WHERE activa = 1 AND (codigo_qr = ? OR numero = ? OR numero = ?)',
+      [codigo, codigo, Number.isNaN(numero) ? -1 : numero]
     );
     if (!mesas.length) return res.status(404).json({ message: 'Mesa no encontrada' });
     res.json(await enrichMesaWithSesion(mesas[0]));
